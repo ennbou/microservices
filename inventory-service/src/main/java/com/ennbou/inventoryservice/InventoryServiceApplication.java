@@ -5,11 +5,15 @@ import com.ennbou.inventoryservice.repositories.ProductRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 @SpringBootApplication
-@EnableDiscoveryClient
+//@EnableDiscoveryClient
 public class InventoryServiceApplication {
 
     public static void main(String[] args) {
@@ -25,5 +29,29 @@ public class InventoryServiceApplication {
             productRepository.findAll().forEach(System.out::println);
         };
     }
+	
+	@Bean
+public RepositoryRestConfigurer repositoryRestConfigurer()
+{
+    return RepositoryRestConfigurer.withConfig(config -> {
+        config.exposeIdsFor(Product.class);
+    });
+}
 
+}
+
+
+@RestController
+class ProductController{
+
+  private final ProductRepository productRepository;
+
+  ProductController(ProductRepository productRepository) {
+    this.productRepository = productRepository;
+  }
+  @DeleteMapping("/products/delete")
+  public List<Long> delete(@RequestParam(name="ids") List<Long> ids){
+    productRepository.deleteAll(productRepository.findAllById(ids));
+    return ids;
+  }
 }
